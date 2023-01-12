@@ -1,65 +1,54 @@
 import "./index.css"
 import { useState, useEffect } from "react";
+import axios from "axios";
 
 function App() {
-  const [data, setData] = useState(null);
+  const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [toDo,setToDO] = useState(null);
   const [progres,setProgres] = useState(null);
   const [completed,setCompleted] = useState(null); 
+
   const [message, setMessage] = useState('');
+  const [description, setDescription] = useState('');
 
   useEffect(() => {
-    fetch(`http://localhost:3001/tasks`)
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error(
-            `This is an HTTP error: The status is ${response.status}`
-          );
-      }
-    
-      return response.json();
-      })
-      .then((actualData) => {
-        setData(actualData);
-        setError(null);
-      })
-      .catch((err) => {
-        setError(err.message);
-        setData(null);
-      })
-      .finally(() => {
+    axios.get('http://localhost:3001/tasks')
+      .then(res => {
+        setData(res.data);
         setLoading(false);
-      });
-  }, []);
-
-  if(!data) return;
+      })
+      .catch(err => {
+        console.log(err);
+        setError(err);
+        setLoading(false);
+      })
+    }, []);
 
   var jsonData1 = {
-
-    "title": "fAadsasd",
-    "description": "This one is a simple description of a todo task",
-
-
-
+    "title": "",
+    "description": "",
+    "completed": false,
+    "isInProgress": true,
   }
+
   function handleClick() {
-    
-    var formData = new FormData();
-    formData.append('json1', JSON.stringify(jsonData1));
-    console.log(formData.jsonData1);
+    jsonData1.title = message;
+    jsonData1.description = description;
 
-    // Send data to the backend via POST
-    fetch('http://localhost:3001/tasks', {
-
-      method: 'POST', 
-      mode: 'cors', 
-      body: formData // body data type must match "Content-Type" header
-
+    axios.post('http://localhost:3001/tasks', jsonData1)
+    .then(res => {
+      console.log(res);
+      console.log(res.data);
     })
+    .catch(err => {
+      console.log(err);
+    })
+
+  
   }
- 
+
 
   const handleChange = event => {
     setMessage(event.target.value);
@@ -67,6 +56,9 @@ function App() {
     console.log('value is:', event.target.value);
   };
 
+  const handleDescChange = event => {
+    setDescription(event.target.value);
+  };
   return (
     <div>
       <div >
@@ -77,15 +69,10 @@ function App() {
           <div>
         <label> To do list </label>
         <form className="form1">
-
-              <input className="Title" placeholder="Title"    id='message'     onChange={handleChange}
-        value={message}/>
-
+              <input className="Title" placeholder="Title"    id='message'     onChange={handleChange} value={message}/>
         </form>
         <form className="form2">
-            
-            <input className="Description" placeholder="Description" />
-           
+            <input className="Description" placeholder="Description" onChange={handleDescChange}/>
         </form>
         <button className="Create"  placeholder="Create" onClick={handleClick}>
           Create
@@ -102,7 +89,7 @@ function App() {
             </div>
             );
           })} 
-
+      
         </div>
         </div>
         <div>
@@ -120,6 +107,7 @@ function App() {
             </div>
             );
           })} 
+
         </div>
         </div>
         <div>
